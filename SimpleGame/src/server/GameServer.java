@@ -1,113 +1,65 @@
 package server;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.SocketException;
 import java.util.ArrayList;
 
 public class GameServer {
 	
-	private ServerSocket serverSocket;
-	private ArrayList<Socket> activeClients = new ArrayList<>();
-	private ArrayList<Thread> activeThreads = new ArrayList<>();
+	private ServerSocket server;
+	private ArrayList<ServerClientInstance> activeClientInstances;
+	private int SLOTS;
+	private int PORT;
+	private boolean isAlive;
 	
 	public GameServer(int SLOTS, int PORT) {
-		try {
-			serverSocket = new ServerSocket(PORT);
-		} catch (IOException e1) {}
-		
-		for (int i = 0; i < SLOTS; i++) {
-			int socketID = i + 1;
-			Thread currentThread = new Thread(new Runnable() {
-				@Override
-				public void run() {
-					int clientID = socketID;
-					while (true) {
-						try {
-							newSocket(clientID);
-						} catch (IOException e) {
-							break;
-						}	
-					}
-					System.out.println("Socket " + clientID + " Closed!");
-				}	
-			});
-			currentThread.start();
-			activeThreads.add(currentThread);
-		}
+		this.SLOTS = SLOTS;
+		this.PORT = PORT;
+		this.isAlive = false;
 	}
 	
-	public void kill() {
+	public void stop() {
+		if (isAlive) {
+			System.out.println("Stopping Server...");
+			for (ServerClientInstance client : activeClientInstances) {
+				client.stop();
+			}
+			isAlive = false;
+		} else {
+			System.out.println("Server Already Stopped!");
+		}
+		System.out.println("Server Stopped!");
+	}
+	
+	private void start() {
 		try {
-			serverSocket.close();
-			System.out.println("Server Closing...");
+			System.out.println("Creating Server with " + SLOTS + " Slots...");
+			server = new ServerSocket(PORT);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			System.out.println("CANT KILL SERVER!");
+			System.out.println("Server Cannot be created!");
+			return;
 		}
-		
-		for (Socket client : activeClients) {
-			try {
-				client.close();
-				System.out.println("Client Sockets Closing...");
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				System.out.println("CANT KILL CLIENT!");
-			}
+		activeClientInstances = new ArrayList<>();
+		for (int i = 1; i <= SLOTS; i++) {
+			activeClientInstances.add(new ServerClientInstance(server, i));
 		}
-		
-		for (Thread thread : activeThreads) {
-			try {
-				thread.join();
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				System.out.println("CANT KILL THREAD!");
-			}
-		}
-		System.out.println("Server Closed!");
+		isAlive = true;
 	}
 	
-	private void newSocket(int clientID) throws IOException {
-		System.out.println("Waiting for Client in Slot " + clientID + "...");
-		Socket client = serverSocket.accept();
-		activeClients.add(client);
-		System.out.println("New Client Accepted: Client " + clientID);
-		processInput(client, clientID);
-		client.close();
-		activeClients.remove(client);
-		
+	public void restart() {
+		if (isAlive) {
+			stop();
+		}
+		if (!isAlive) {
+			start();
+		}
 	}
 	
-	private void processInput(Socket client, int clientID) throws IOException {
-		BufferedReader fromClient = new BufferedReader(new InputStreamReader(client.getInputStream()));
-		PrintWriter toClient = new PrintWriter(client.getOutputStream(), true);
-		
-		String clientInput = "";
-		while (!clientInput.equalsIgnoreCase("stop") && !serverSocket.isClosed()) {
-			try {
-				clientInput = fromClient.readLine();
-			} catch (SocketException e) {
-				System.out.println("Client " + clientID + " has Disconnected");
-				return;
-			}
-			System.out.println("Client " + clientID + ": " + clientInput);
-			if (clientInput.equalsIgnoreCase("who")) {
-				toClient.println("YOU ARE CLIENT " + clientID);
-			} else if (clientInput.equalsIgnoreCase("stop")) {
-				toClient.println("Ending Session With Client " + clientID);
-			} else {
-				toClient.println("Sending Back Data On " + clientInput + " to Client " + clientID);
-			}
-		}
-		
-		fromClient.close();
-		toClient.close();
-		System.out.println("Client " + clientID + " has Left the Server");
+	public boolean isAlive() {
+		return isAlive;
 	}
+	
+	
 	
 	
 

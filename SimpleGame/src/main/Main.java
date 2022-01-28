@@ -19,24 +19,19 @@ public class Main {
 	
 	private static void process(Scanner sc) {
 		String input = "";
-		GameServer server = null;
+		GameServer server = new GameServer(1, PORT);
 		System.out.println("Enter \"server\" for SERVER");
 		System.out.println("Enter \"client\" for CLIENT");
 		System.out.println("Enter \"end\" to close the MENU");
 		while(!input.equalsIgnoreCase("end")) {
 			input = sc.nextLine();
 			if (input.equalsIgnoreCase("server")) {
-				if (server!=null) {
-					server.kill();
-				}
-				server = new GameServer(2, PORT);
+				server.restart();
 			} else if (input.equalsIgnoreCase("client")) {
 				new GameClient(ADDRESS, PORT, sc);
 			}
 		}
-		if (server!=null) {
-			server.kill();
-		}
+		server.stop();
 		System.out.println("Exited Menu!");
 		
 	}
