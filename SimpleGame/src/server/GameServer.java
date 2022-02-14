@@ -5,19 +5,20 @@ import java.net.ServerSocket;
 import java.util.ArrayList;
 
 public class GameServer {
-	
+
 	private ServerSocket server;
 	private ArrayList<ServerClientInstance> activeClientInstances;
 	private int SLOTS;
 	private int PORT;
 	private boolean isAlive;
-	
+
 	public GameServer(int SLOTS, int PORT) {
 		this.SLOTS = SLOTS;
 		this.PORT = PORT;
 		this.isAlive = false;
+
 	}
-	
+
 	public void stop() {
 		if (isAlive) {
 			System.out.println("Stopping Server...");
@@ -30,7 +31,7 @@ public class GameServer {
 		}
 		System.out.println("Server Stopped!");
 	}
-	
+
 	private void start() {
 		try {
 			System.out.println("Creating Server with " + SLOTS + " Slots...");
@@ -45,7 +46,7 @@ public class GameServer {
 		}
 		isAlive = true;
 	}
-	
+
 	public void restart() {
 		if (isAlive) {
 			stop();
@@ -54,13 +55,9 @@ public class GameServer {
 			start();
 		}
 	}
-	
+
 	public boolean isAlive() {
 		return isAlive;
 	}
-	
-	
-	
-	
 
 }

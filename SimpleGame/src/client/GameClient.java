@@ -30,6 +30,7 @@ public class GameClient {
 				e.printStackTrace();
 			}
 
+			
 	}
 	
 	private void connect(String address, int port) throws UnknownHostException, IOException, ClassNotFoundException {

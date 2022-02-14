@@ -8,17 +8,17 @@ import java.net.Socket;
 import java.net.SocketException;
 
 public class ServerClientInstance implements Runnable {
-	
+
 	private ServerSocket server;
 	private Socket client;
-	//private BufferedReader fromClient;
-	//private PrintWriter toClient;
+	// private BufferedReader fromClient;
+	// private PrintWriter toClient;
 	private ObjectInputStream fromClient;
 	private ObjectOutputStream toClient;
 	private int clientID;
-	
+
 	private volatile Thread thread;
-	
+
 	public ServerClientInstance(ServerSocket server, int clientID) {
 		this.server = server;
 		this.clientID = clientID;
@@ -26,34 +26,34 @@ public class ServerClientInstance implements Runnable {
 		thread = new Thread(this);
 		thread.start();
 	}
-	
+
 	@Override
 	public void run() {
 		while (!server.isClosed()) {
-            try {
-                processClientStream();
-            } catch (SocketException e){
-            	continue;
-            } catch (Exception e) {
-            	System.out.println("Exiting loop!");
-            	e.printStackTrace();
-            	break;
-            }
-        }
+			try {
+				processClientStream();
+			} catch (SocketException e) {
+				continue;
+			} catch (Exception e) {
+				System.out.println("Exiting loop!");
+				e.printStackTrace();
+				break;
+			}
+		}
 	}
-	
+
 	public void start(ServerSocket server, int clientID) {
 		this.server = server;
 		this.clientID = clientID;
 		thread = new Thread(this);
 		thread.start();
 	}
-	
+
 	public void stop() {
 		System.out.println("Client " + clientID + " Closing...");
-		//thread.interrupt();
+		// thread.interrupt();
 		try {
-			//toClient.writeObject("Server: Disconnecting Clients...");
+			// toClient.writeObject("Server: Disconnecting Clients...");
 			server.close();
 			client.close();
 			toClient.close();
@@ -69,16 +69,17 @@ public class ServerClientInstance implements Runnable {
 		}
 		System.out.println("Client " + clientID + " Closed!");
 	}
-	
+
 	private void processClientStream() throws IOException, ClassNotFoundException {
 		System.out.println("Awaiting Client Connection " + clientID + "...");
 		client = server.accept();
-		//fromClient = new BufferedReader(new InputStreamReader(client.getInputStream()));
-		//toClient = new PrintWriter(client.getOutputStream(), true);
+		// fromClient = new BufferedReader(new
+		// InputStreamReader(client.getInputStream()));
+		// toClient = new PrintWriter(client.getOutputStream(), true);
 		toClient = new ObjectOutputStream(client.getOutputStream());
 		fromClient = new ObjectInputStream(client.getInputStream());
 		System.out.println("Client " + clientID + " Connected!");
-		
+
 		String clientInput = "";
 		while (!clientInput.equalsIgnoreCase("stop")) {
 			clientInput = (String) fromClient.readObject();
@@ -96,7 +97,5 @@ public class ServerClientInstance implements Runnable {
 		client.close();
 		System.out.println("Client " + clientID + " has Left the Server");
 	}
-	
-	
 
 }
